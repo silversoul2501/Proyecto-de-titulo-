@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/evaluaciones.css' %}">
+  <title>Evaluaciones</title>
+</head>
+<body>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="msg msg-{{ message.tags|default:'info' }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <header class="site-header">
+    <img src="{% static 'img/insigniaEncabezado16.png' %}" alt="Logo institucional" class="logo">
+    <div class="site-title">
+      <h1>Evaluaciones</h1>
+      <p class="subtitle">Panel general</p>
+    </div>
+  </header>
+
+  <div class="meta">
+    <form method="get" class="meta-row" style="margin:0">
+      <input type="text" name="q" value="{{ q }}" placeholder="Buscar por docente o curso" />
+      <select name="estado">
+        <option value="">Todos los estados</option>
+        <option value="Borrador" {% if estado == 'Borrador' %}selected{% endif %}>Borrador</option>
+        <option value="Cerrada" {% if estado == 'Cerrada' %}selected{% endif %}>Cerrada</option>
+      </select>
+      <button type="submit">Filtrar</button>
+      <a href="{% url 'evaluaciones:nueva' %}" class="btn-ghost" style="margin-left:auto">Nueva evaluación</a>
+    </form>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Docente</th>
+        <th>Curso</th>
+        <th>Estado</th>
+        <th>Fecha</th>
+        <th style="width: 260px;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ev in page_obj %}
+        <tr>
+          <td>{{ ev.id }}</td>
+          <td>{{ ev.evaluado }}</td>
+          <td>{{ ev.contexto|default:"—" }}</td>
+          <td>
+            {% if ev.estado == "Cerrada" %}
+              <span class="chip chip--cerrada">Cerrada</span>
+            {% else %}
+              <span class="chip chip--borrador">Borrador</span>
+            {% endif %}
+          </td>
+          <td>{% if ev.updated_at %}{{ ev.updated_at|date:"Y-m-d H:i" }}{% else %}{{ ev.fecha }}{% endif %}</td>
+          <td>
+            <a class="btn-resumen" href="{% url 'evaluaciones:editar' ev.pk %}">Editar</a>
+            <a class="btn-resumen" href="{% url 'evaluaciones:resumen' ev.pk %}">Resumen</a>
+            <a class="btn-pdf" href="{% url 'evaluaciones:pdf' ev.pk %}">PDF</a>
+            {% if ev.estado == 'Cerrada' %}
+              <form method="post" action="{% url 'evaluaciones:reabrir' ev.pk %}" style="display:inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-ghost">Reabrir</button>
+              </form>
+            {% else %}
+              <form method="post" action="{% url 'evaluaciones:finalizar' ev.pk %}" style="display:inline" onclick="return confirm('¿Finalizar esta evaluación? No podrás editar hasta reabrir.')">
+                {% csrf_token %}
+                <button type="submit" class="btn-finalizar">Finalizar</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6" class="small">No hay evaluaciones que coincidan con el filtro.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <div class="meta-row" style="justify-content:center; margin-top:1rem; gap:.4rem">
+      {% if page_obj.has_previous %}
+        <a class="btn-ghost" href="?q={{ q }}&estado={{ estado }}&page={{ page_obj.previous_page_number }}">« Anterior</a>
+      {% endif %}
+
+      {# Primer página + elipsis si estamos lejos del inicio #}
+      {% if page_obj.number > 3 %}
+        <a class="btn-ghost" href="?q={{ q }}&estado={{ estado }}&page=1">1</a>
+        <span class="small">…</span>
+      {% endif %}
+
+      {# Ventana de páginas alrededor de la actual (-2 a +2) #}
+      {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+          {% if num == page_obj.number %}
+            <span class="btn-ghost" style="font-weight:700; pointer-events:none;">{{ num }}</span>
+          {% else %}
+            <a class="btn-ghost" href="?q={{ q }}&estado={{ estado }}&page={{ num }}">{{ num }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {# Elipsis + última página si estamos lejos del final #}
+      {% if page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+        <span class="small">…</span>
+        <a class="btn-ghost" href="?q={{ q }}&estado={{ estado }}&page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+      {% endif %}
+
+      {% if page_obj.has_next %}
+        <a class="btn-ghost" href="?q={{ q }}&estado={{ estado }}&page={{ page_obj.next_page_number }}">Siguiente »</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</body>
+</html>

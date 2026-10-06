@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/pdf.css' %}">
+  <title>Resumen Evaluación {{ ev.id }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; margin: 2cm; }
+    h1 { text-align: center; color: #003366; margin-bottom: .5cm; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1cm; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background-color: #eaf1fa; }
+    .header { text-align: center; margin-bottom: 1cm; font-size: 10pt; }
+  </style>
+</head>
+<body>
+  <header style="display:flex; align-items:center; gap:10px; border-bottom:1px solid #003366; padding-bottom:8px; margin-bottom:14px;">
+    <img src="{% static 'img/insigniaEncabezado16.png' %}" alt="Logo institucional" style="height:48px; width:auto;">
+    <div>
+      <div style="font-size:16px; font-weight:bold; color:#003366;">Resumen de Evaluación</div>
+      <div style="font-size:11px; color:#333;">
+        <strong>Docente:</strong> {{ ev.evaluado }} &nbsp;&nbsp; <strong>Curso:</strong> {{ ev.contexto|default:"—" }}
+      </div>
+      <div style="font-size:11px; color:#333;">
+        <strong>Checklist:</strong> {{ ev.checklist }} &nbsp;&nbsp; <strong>Estado:</strong> {{ ev.estado }}
+      </div>
+      <div style="font-size:11px; color:#333;">
+        <strong>Fecha:</strong> {% if ev.updated_at %}{{ ev.updated_at|date:"Y-m-d H:i" }}{% else %}{{ ev.fecha }}{% endif %}
+      </div>
+    </div>
+  </header>
+
+  <h2>Por Dominio</h2>
+  <table>
+    <tr>
+      <th>Dominio</th><th>Total</th><th>L</th><th>M</th><th>P</th><th>%L</th><th>%M</th><th>%P</th>
+    </tr>
+    {% for r in por_dom %}
+      <tr>
+        <td>{{ r.descriptor__foco__estandar__dominio__nombre }}</td>
+        <td>{{ r.total }}</td>
+        <td>{{ r.l }}</td>
+        <td>{{ r.m }}</td>
+        <td>{{ r.p }}</td>
+        <td>{{ r.pct_l }}%</td>
+        <td>{{ r.pct_m }}%</td>
+        <td>{{ r.pct_p }}%</td>
+      </tr>
+    {% endfor %}
+    <tr style="font-weight: bold; background:#f6f8fc;">
+      <td>Totales</td>
+      <td>{{ tot_dom.total }}</td>
+      <td>{{ tot_dom.l }}</td>
+      <td>{{ tot_dom.m }}</td>
+      <td>{{ tot_dom.p }}</td>
+      <td>{{ tot_dom.pct_l }}%</td>
+      <td>{{ tot_dom.pct_m }}%</td>
+      <td>{{ tot_dom.pct_p }}%</td>
+    </tr>
+  </table>
+
+  <h2>Por Estándar</h2>
+  <table>
+    <tr>
+      <th>Dominio</th><th>Estándar</th><th>Total</th><th>L</th><th>M</th><th>P</th><th>%L</th><th>%M</th><th>%P</th>
+    </tr>
+    {% for r in por_est %}
+      <tr>
+        <td>{{ r.descriptor__foco__estandar__dominio__nombre }}</td>
+        <td>{{ r.descriptor__foco__estandar__nombre }}</td>
+        <td>{{ r.total }}</td>
+        <td>{{ r.l }}</td>
+        <td>{{ r.m }}</td>
+        <td>{{ r.p }}</td>
+        <td>{{ r.pct_l }}%</td>
+        <td>{{ r.pct_m }}%</td>
+        <td>{{ r.pct_p }}%</td>
+      </tr>
+    {% endfor %}
+    <tr style="font-weight: bold; background:#f6f8fc;">
+      <td colspan="2">Totales</td>
+      <td>{{ tot_est.total }}</td>
+      <td>{{ tot_est.l }}</td>
+      <td>{{ tot_est.m }}</td>
+      <td>{{ tot_est.p }}</td>
+      <td>{{ tot_est.pct_l }}%</td>
+      <td>{{ tot_est.pct_m }}%</td>
+      <td>{{ tot_est.pct_p }}%</td>
+    </tr>
+  </table>
+</body>
+</html>

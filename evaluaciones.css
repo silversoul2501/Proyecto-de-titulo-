@@ -1,0 +1,678 @@
+/* === Evaluaciones MBE - Estilos base === */
+
+/* Tipografía y layout general */
+body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: #fafafa;
+    color: #222;
+    margin: 1.5rem;
+    line-height: 1.5;
+}
+
+/* Encabezado principal */
+h1 {
+    font-size: 1.8rem;
+    color: #003366;
+    border-bottom: 2px solid #003366;
+    padding-bottom: 0.3rem;
+}
+
+/* Subtexto informativo */
+.small {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Colapsables */
+details {
+    margin: 0.4rem 0;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+}
+
+summary {
+    font-weight: 600;
+    cursor: pointer;
+    color: #003366;
+}
+
+/* Fila de descriptor */
+.descriptor {
+    border-bottom: 1px solid #e3e3e3;
+    padding: 0.6rem 0;
+    background-color: #fff;
+}
+
+.descriptor:hover {
+    background-color: #f5f9ff;
+}
+
+/* Sección de niveles */
+.nivel-group {
+    margin-top: 0.3rem;
+}
+
+.nivel-group label {
+    margin-right: 1rem;
+    font-size: 0.95rem;
+}
+
+/* Checkbox ✓/☐ */
+.nivel-group input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-right: 0.3rem;
+}
+
+/* Campo de observaciones */
+textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.4rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+/* Botones */
+button {
+    margin-top: 0.4rem;
+    background-color: #003366;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+button:hover {
+    background-color: #0050b3;
+}
+
+/* Transiciones suaves para actualizaciones HTMX */
+.htmx-swapping {
+    opacity: 0.3;
+    transition: opacity 0.3s ease-out;
+}
+.htmx-settling {
+    opacity: 1;
+    transition: opacity 0.3s ease-in;
+}
+
+/* Progress bar */
+
+/* 1) Solo lectura (evaluación cerrada) */
+.descriptor.readonly {
+    background-color: #f9f9f9;
+    border-left: 4px solid #999;
+}
+.descriptor.readonly:hover {
+    background-color: #f5f5f5; /* sin highlight azul */
+}
+
+/* 2) Usabilidad y accesibilidad de inputs */
+input[type="radio"], input[type="checkbox"] {
+    accent-color: #003366;
+}
+textarea {
+    min-height: 70px; /* más cómodo por defecto */
+}
+button:focus, textarea:focus, input[type="radio"]:focus, input[type="checkbox"]:focus {
+    outline: 2px solid #99b3d6;
+    outline-offset: 2px;
+}
+
+/* 5) Diseño responsive */
+@media (max-width: 720px) {
+    body { margin: 1rem; }
+    h1 { font-size: 1.4rem; }
+    .nivel-group label { display: inline-block; margin-bottom: .3rem; }
+    button { width: 100%; }
+}
+
+/* 3) Barra de progreso sticky (opcional pero útil) */
+#progress {
+    position: sticky;
+    top: 0.5rem;
+    z-index: 5;
+    background: #fafafa;
+    /* convertir en barra sticky flexible */
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.6rem; /* reemplaza padding-bottom */
+    border-radius: 4px;
+}
+#progress .progress {
+    flex: 1; /* la barra ocupa todo el ancho disponible */
+    overflow: visible; /* permitir que el tooltip salga */
+    position: relative;
+}
+
+/* (extra) Botón diferenciado para finalizar */
+button.btn-finalizar {
+    background-color: #2e7d32; /* verde */
+}
+button.btn-finalizar:hover {
+    background-color: #1b5e20;
+}
+/*****Ajustes visuales opcionales (finitos)********/
+
+/* 1) Evita que el texto de progreso se corte */
+#progress .small {
+  white-space: nowrap;
+}
+
+/* 2) Un poco más de altura en pantallas grandes */
+@media (min-width: 1024px) {
+  #progress .progress {
+    height: 16px;
+  }
+}
+
+/* 3) Sombra sutil para separar la barra sticky del contenido */
+#progress {
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+}
+/* === Botón para Ver resumen === */
+.btn-resumen {
+  display: inline-block;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  color: #003366;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s;
+}
+
+.btn-resumen:hover {
+  background-color: #f3f4f6;
+  box-shadow: 0 0 3px rgba(0,0,0,0.1);
+}
+
+/* === Tablas de resumen === */
+/* === Barra de progreso dinámica con color por porcentaje === */
+#progress .progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#progress .progress-bar {
+  position: relative;
+  flex: 1;
+  height: 14px;
+  border-radius: 999px;
+  background: #e5e7eb; /* fondo gris */
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Relleno dinámico según variable --percent */
+#progress .progress-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: calc(var(--percent, 0) * 1%);
+  border-radius: 999px;
+  background: #dc2626; /* rojo por defecto */
+  transition: width 0.35s ease;
+}
+
+/* Colores según nivel de progreso */
+#progress[data-progress="mid"] .progress-bar::before { background: #f59e0b; } /* amarillo */
+#progress[data-progress="high"] .progress-bar::before { background: #2e7d32; } /* verde */
+
+#progress .progress-label {
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+#progress .progress-info {
+  margin-top: 0.2rem;
+  font-weight: 500;
+}
+
+/* Colores de texto alineados al semáforo */
+#progress[data-progress="low"]  .progress-info { color: #b91c1c; }
+#progress[data-progress="mid"]  .progress-info { color: #b45309; }
+#progress[data-progress="high"] .progress-info { color: #2e7d32; }
+
+/* === Tooltip flotante sobre la barra de progreso === */
+.progress-tooltip {
+  position: absolute;
+  top: -28px;
+  right: 0;
+  transform: translateX(50%);
+  background-color: #003366;
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 2;
+}
+
+.progress-bar:hover .progress-tooltip {
+  opacity: 1;
+  transform: translateX(50%) translateY(-4px);
+}
+
+/* Pequeña flecha del tooltip */
+.progress-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #003366 transparent transparent transparent;
+}
+
+/* Mostrar tooltip al pasar por la barra o por el wrapper completo */
+#progress .progress-wrapper:hover .progress-tooltip,
+#progress .progress-bar:hover .progress-tooltip {
+  opacity: 1;
+  transform: translateX(50%) translateY(-4px);
+}
+
+/* Colores del tooltip según data-progress */
+#progress[data-progress="low"]  .progress-tooltip { background-color: #b91c1c; }
+#progress[data-progress="mid"]  .progress-tooltip { background-color: #b45309; }
+#progress[data-progress="high"] .progress-tooltip { background-color: #2e7d32; }
+
+#progress[data-progress="low"]  .progress-tooltip::after { border-color: #b91c1c transparent transparent transparent; }
+#progress[data-progress="mid"]  .progress-tooltip::after { border-color: #b45309 transparent transparent transparent; }
+#progress[data-progress="high"] .progress-tooltip::after { border-color: #2e7d32 transparent transparent transparent; }
+/* === Mejoras visuales para resumen.html === */
+ 
+/* Contenedor del resumen */
+.resumen-block {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Encabezados */
+.resumen-block h2 {
+  font-size: 1.2rem;
+  color: #003366;
+  margin-bottom: .6rem;
+}
+
+/* Tablas */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th, .table td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0.6rem;
+}
+
+.table thead th {
+  background: #f3f4f6;
+  color: #003366;
+  text-align: center;
+  font-weight: 600;
+}
+
+.table-striped tbody tr:nth-child(odd) {
+  background: #fafafa;
+}
+
+/* Fila total */
+.table tfoot {
+  background: #eef2ff;
+  font-weight: bold;
+}
+
+/* Celdas derechas */
+.text-right {
+  text-align: right;
+}
+
+/* Barra visual en celdas de %L */
+.table .bar-container {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.table .bar-bg {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.table .bar-fill {
+  height: 100%;
+  background: #2e7d32;
+  border-radius: 999px;
+  transition: width 0.3s ease-in-out;
+}
+.btn-pdf{
+  display:inline-block;
+  padding:.45rem .8rem;
+  border:1px solid #5b6dff;
+  border-radius:6px;
+  background:#eef1ff;
+  color:#2b3abf;
+  text-decoration:none;
+  font-weight:600;
+  margin-left:.5rem; /* separarlo del botón “Ver resumen” */
+  line-height:1;
+}
+.btn-pdf:hover{ background:#e2e7ff; border-color:#4d5cf0; }
+.btn-pdf:active{ transform:translateY(1px); }
+.btn-pdf:visited{ color:#2b3abf; } /* evita el morado de enlace visitado */
+.evidencias-bloque {
+  margin-top: .6rem;
+  padding: .6rem .8rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+.evid-title {
+  margin: 0 0 .4rem;
+  font-size: 1rem;
+  color: #003366;
+}
+.evid-list {
+  list-style: none;
+  margin: 0 0 .4rem;
+  padding: 0;
+}
+.evid-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .25rem 0;
+  border-bottom: 1px dashed #eee;
+}
+.evid-item:last-child { border-bottom: 0; }
+.evid-item a {
+  color: #1f4f99;
+  text-decoration: none;
+  word-break: break-all;
+}
+.evid-item a:hover { text-decoration: underline; }
+.evid-nota { color: #555; font-style: italic; }
+
+.evid-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+.evid-form input[type="file"] {
+  border: 1px solid #d0d7de;
+  padding: .25rem;
+  border-radius: 4px;
+  background: #fafafa;
+}
+.evid-form .evid-nota-input {
+  flex: 1;
+  min-width: 220px;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  padding: .35rem .45rem;
+}
+
+/* Botón de acción tipo enlace en rojo (borrar) */
+.link-danger {
+  background: transparent;
+  border: none;
+  color: #b91c1c;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.link-danger:hover { color: #991b1b; }
+
+/* Utilidad para texto apagado */
+.muted { color: #6b7280; }
+
+@media (max-width: 720px) {
+  .evid-item { align-items: flex-start; }
+  .evid-form { flex-direction: column; align-items: stretch; }
+  .evid-form button { width: 100%; }
+}
+.meta {
+  margin: .8rem 0 1rem;
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: .8rem;
+}
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-bottom: .5rem;
+}
+.meta-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: .85rem;
+  color: #003366;
+}
+.meta-form input[type="text"] {
+  min-width: 220px;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  padding: .35rem .45rem;
+  font-size: .95rem;
+  background: #fff;
+}
+.meta-form button {
+  margin-left: .25rem;
+  height: 34px;
+}
+.meta-readonly {
+  padding: .3rem .5rem;
+  background: #f8fafc;
+  border: 1px dashed #d0d7de;
+  border-radius: 4px;
+}
+.meta-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: .3rem;
+}
+.btn-ghost {
+  display: inline-block;
+  padding: .4rem .6rem;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  background: #fff;
+  color: #003366;
+  text-decoration: none;
+  font-size: .9rem;
+}
+.btn-ghost:hover { background: #f3f4f6; }
+
+@media (max-width: 720px) {
+  .meta { padding: .6rem; }
+  .meta-form input[type="text"] { min-width: 180px; }
+  .meta-actions button, .meta-actions a { width: 100%; }
+}
+
+/* === Mensajes de Django (éxito / error / info) === */
+.messages { list-style:none; margin:1rem auto; padding:0; max-width:900px; }
+.msg { border-radius:5px; padding:.8rem 1rem; margin-bottom:.5rem; font-weight:500; box-shadow:0 2px 6px rgba(0,0,0,.1); animation:fadeIn .4s ease-in; }
+.msg-info { background:#e0f2ff; color:#005580; border-left:4px solid #0091ea; }
+.msg-success { background:#e7f8ec; color:#116329; border-left:4px solid #2ecc71; }
+.msg-error { background:#fdecea; color:#a30000; border-left:4px solid #e74c3c; }
+@keyframes fadeIn { from{opacity:0; transform:translateY(-5px)} to{opacity:1; transform:translateY(0)} }
+
+/* === Estado en lista (pills de color) === */
+.estado-pill {
+  display: inline-block;
+  padding: .2rem .5rem;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  vertical-align: middle;
+  user-select: none;
+}
+.estado-borrador {
+  color: #b45309;              /* texto ámbar oscuro */
+  background: #fff7ed;         /* ámbar muy claro */
+  border-color: #f59e0b;       /* borde ámbar */
+}
+.estado-cerrada {
+  color: #116329;              /* verde oscuro */
+  background: #e7f8ec;         /* verde muy claro */
+  border-color: #2ecc71;       /* borde verde */
+}
+/* === Aviso de evaluación cerrada (sticky) === */
+.alert-locked{
+  position: sticky;
+  top: 0.5rem;
+  z-index: 6;
+  background: #fff7ed;           /* ámbar muy claro */
+  color: #7c2d12;                /* ámbar oscuro */
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: .5rem .7rem;
+  margin: .6rem 0 .2rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  font-weight: 600;
+}
+/* === Estilos de impresión (resumen & edición) === */
+@media print {
+  /* Márgenes y tipografía para papel */
+  body { margin: 12mm; background: #fff; color: #000; }
+  h1, h2, h3 { color: #000; }
+
+  /* Ocultar elementos UI que no aportan al papel */
+  #progress,
+  .meta,
+  .meta-actions,
+  .btn-resumen,
+  .btn-pdf,
+  .btn-ghost,
+  .btn-finalizar,
+  button,
+  form[action],
+  .messages { display: none !important; }
+
+  /* Tablas con bordes más visibles */
+  .table { font-size: 12px; }
+  .table th, .table td { border: 1px solid #999 !important; }
+  .table thead th { background: #eaeaea !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* Evitar cortes feos de tablas entre páginas */
+  table, thead, tbody, tfoot, tr, th, td { page-break-inside: avoid; }
+
+  /* Quitar sombras/fondos que no imprimen bien */
+  .resumen-block, .meta, .alert-locked { box-shadow: none !important; background: #fff !important; border-color: #999 !important; }
+
+  /* Utilidad opcional: ocultar lo que tenga .no-print */
+  .no-print { display: none !important; }
+}
+/* === Chips alternativos de estado (para lista.html) === */
+.chip {
+  display: inline-block;
+  padding: .2rem .5rem;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  vertical-align: middle;
+  user-select: none;
+}
+.chip--borrador { color: #b45309; background: #fff7ed; border-color: #f59e0b; }
+.chip--cerrada  { color: #116329; background: #e7f8ec; border-color: #2ecc71; }
+
+/* === Acciones de resumen responsivas (alineación en móviles) === */
+.resumen-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .3rem;
+}
+@media (max-width: 720px) {
+  .resumen-actions { flex-direction: column; align-items: stretch; }
+  .resumen-actions > *:where(a, button, form) { width: 100%; }
+  .resumen-actions form button { width: 100%; }
+}
+/* === Print refinements for resumen/edición === */
+@media print {
+  /* Intento de normalizar tamaño y márgenes en navegadores que lo soporten */
+  @page { size: A4 portrait; margin: 12mm; }
+
+  /* Evitar cortes feos en bloques clave */
+  .resumen-block, details, .meta, .alert-locked { page-break-inside: avoid; }
+  h1, h2, h3 { page-break-after: avoid; }
+
+  /* Asegurar colores en elementos críticos */
+  .table thead th,
+  .table .bar-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .table .bar-fill { background: #2e7d32 !important; }
+
+  /* Chips más legibles en papel (b/n amistoso) */
+  .chip { border-color: #999 !important; }
+  .chip--borrador, .chip--cerrada {
+    background: #eee !important;
+    color: #000 !important;
+  }
+
+  /* Enlaces sin subrayado chillón */
+  a { color: #000 !important; text-decoration: none !important; }
+}
+/* === Encabezado institucional global === */
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 3px solid #003366;
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.2rem;
+  background: #ffffff;
+}
+
+.site-header .logo {
+  height: 60px;
+  width: auto;
+}
+
+.site-title h1 {
+  font-size: 1.4rem;
+  color: #003366;
+  margin: 0;
+}
+
+.site-title .subtitle {
+  font-size: 0.9rem;
+  color: #444;
+  margin: 0;
+}

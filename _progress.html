@@ -1,0 +1,34 @@
+<div id="progress"
+     hx-swap-oob="true"
+     data-progress="{% if progress_percent >= 80 %}high{% elif progress_percent >= 50 %}mid{% else %}low{% endif %}"
+     style="--percent: {{ progress_percent }};">
+  <div class="progress progress-wrapper" aria-label="Avance de evaluación">
+    <div
+      class="progress-bar"
+      role="progressbar"
+      aria-valuenow="{{ progress_percent }}"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuetext="{{ progress_percent }}% completado">
+      <div class="progress-tooltip">{{ progress_percent }}%</div>
+    </div>
+    <span class="progress-label">{{ progress_percent }}%</span>
+  </div>
+
+  {% if ev.estado == "Borrador" %}
+    <form method="post" action="{% url 'evaluaciones:finalizar' ev.pk %}" class="form-finalizar">
+      {% csrf_token %}
+      <button type="submit" class="btn-finalizar">Finalizar evaluación</button>
+    </form>
+    <a class="btn-resumen" href="{% url 'evaluaciones:resumen' ev.pk %}">Ver resumen</a>
+    <a class="btn-pdf" href="{% url 'evaluaciones:pdf' ev.pk %}" target="_blank">Descargar PDF</a>
+  {% else %}
+    <div class="small">Estado: Cerrada</div>
+    <a class="btn-resumen" href="{% url 'evaluaciones:resumen' ev.pk %}">Ver resumen</a>
+    <a class="btn-pdf" href="{% url 'evaluaciones:pdf' ev.pk %}" target="_blank">Descargar PDF</a>
+  {% endif %}
+
+  <div class="progress-info small">
+    {{ progress_completed }} de {{ progress_total }} descriptores con nivel seleccionado
+  </div>
+</div>

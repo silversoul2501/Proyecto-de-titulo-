@@ -1,0 +1,142 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'css/evaluaciones.css' %}">
+  <title>Resumen · Eval {{ ev.id }} — {{ ev.evaluado }}</title>
+</head>
+<body>
+  <header class="site-header">
+    <img src="{% static 'img/insigniaEncabezado16.png' %}" alt="Logo institucional" class="logo">
+    <div class="site-title">
+      <h1>Resumen — {{ ev.evaluado }}</h1>
+      <p class="subtitle">Checklist: {{ ev.checklist }} · Estado: {{ ev.estado }} · Fecha: {% if ev.updated_at %}{{ ev.updated_at|date:"Y-m-d H:i" }}{% else %}{{ ev.fecha }}{% endif %}</p>
+    </div>
+  </header>
+  <div class="meta" style="margin-top:.4rem;">
+    <div class="meta-row">
+      <div><strong>Docente:</strong> {{ ev.evaluado }}</div>
+      <div><strong>Curso:</strong> {{ ev.contexto|default:"—" }}</div>
+    </div>
+    <div class="meta-row small">
+      Checklist: {{ ev.checklist }} — Estado: {{ ev.estado }} —
+      Fecha: {% if ev.updated_at %}{{ ev.updated_at|date:"Y-m-d H:i" }}{% else %}{{ ev.fecha }}{% endif %}
+    </div>
+  </div>
+  <div class="resumen-actions" style="display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem;">
+    <a href="{% url 'evaluaciones:lista' %}" class="btn-ghost">⬅ Volver al listado de Evaluaciones</a>
+    <a href="{% url 'evaluaciones:editar' ev.pk %}">← Volver a la evaluación</a>
+    <a class="btn-pdf" href="{% url 'evaluaciones:pdf' ev.pk %}" target="_blank" rel="noopener">Descargar PDF</a>
+  </div>
+
+  <section class="resumen-block">
+    <h2>Por Dominio</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th style="width:60%">Dominio</th>
+          <th class="text-right">Total</th>
+          <th class="text-right">L</th>
+          <th class="text-right">M</th>
+          <th class="text-right">P</th>
+          <th class="text-right">% L</th>
+          <th class="text-right">% M</th>
+          <th class="text-right">% P</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in por_dom %}
+          <tr>
+            <td>{{ r.descriptor__foco__estandar__dominio__nombre }}</td>
+            <td class="text-right">{{ r.total }}</td>
+            <td class="text-right">{{ r.l }}</td>
+            <td class="text-right">{{ r.m }}</td>
+            <td class="text-right">{{ r.p }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:.4rem;">
+                <div style="flex:1; height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden;">
+                  <div style="height:100%; width: {{ r.pct_l }}%; background:{% if r.pct_l >= 80 %}#2e7d32{% elif r.pct_l >= 50 %}#f59e0b{% else %}#dc2626{% endif %};"></div>
+                </div>
+                <strong>{{ r.pct_l }}%</strong>
+              </div>
+            </td>
+            <td class="text-right"><strong>{{ r.pct_m }}%</strong></td>
+            <td class="text-right"><strong>{{ r.pct_p }}%</strong></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="small">Sin datos para este resumen.</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Totales</th>
+          <th class="text-right">{{ tot_dom.total }}</th>
+          <th class="text-right">{{ tot_dom.l }}</th>
+          <th class="text-right">{{ tot_dom.m }}</th>
+          <th class="text-right">{{ tot_dom.p }}</th>
+          <th class="text-right"><strong>{{ tot_dom.pct_l }}%</strong></th>
+          <th class="text-right"><strong>{{ tot_dom.pct_m }}%</strong></th>
+          <th class="text-right"><strong>{{ tot_dom.pct_p }}%</strong></th>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <section class="resumen-block">
+    <h2>Por Estándar</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Dominio</th>
+          <th>Estándar</th>
+          <th class="text-right">Total</th>
+          <th class="text-right">L</th>
+          <th class="text-right">M</th>
+          <th class="text-right">P</th>
+          <th class="text-right">% L</th>
+          <th class="text-right">% M</th>
+          <th class="text-right">% P</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in por_est %}
+          <tr>
+            <td>{{ r.descriptor__foco__estandar__dominio__nombre }}</td>
+            <td>{{ r.descriptor__foco__estandar__nombre }}</td>
+            <td class="text-right">{{ r.total }}</td>
+            <td class="text-right">{{ r.l }}</td>
+            <td class="text-right">{{ r.m }}</td>
+            <td class="text-right">{{ r.p }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:.4rem;">
+                <div style="flex:1; height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden;">
+                  <div style="height:100%; width: {{ r.pct_l }}%; background:{% if r.pct_l >= 80 %}#2e7d32{% elif r.pct_l >= 50 %}#f59e0b{% else %}#dc2626{% endif %};"></div>
+                </div>
+                <strong>{{ r.pct_l }}%</strong>
+              </div>
+            </td>
+            <td class="text-right"><strong>{{ r.pct_m }}%</strong></td>
+            <td class="text-right"><strong>{{ r.pct_p }}%</strong></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9" class="small">Sin datos para este resumen.</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th colspan="2">Totales</th>
+          <th class="text-right">{{ tot_est.total }}</th>
+          <th class="text-right">{{ tot_est.l }}</th>
+          <th class="text-right">{{ tot_est.m }}</th>
+          <th class="text-right">{{ tot_est.p }}</th>
+          <th class="text-right"><strong>{{ tot_est.pct_l }}%</strong></th>
+          <th class="text-right"><strong>{{ tot_est.pct_m }}%</strong></th>
+          <th class="text-right"><strong>{{ tot_est.pct_p }}%</strong></th>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<div class="descriptor" id="desc-{{ d.id }}">
+  <div><strong>{{ d.texto }}</strong></div>
+  <div class="small">
+    <em>Logrado:</em> {{ d.logrado }}<br>
+    <em>Medianamente:</em> {{ d.medianamente_logrado }}<br>
+    <em>Por lograr:</em> {{ d.por_lograr }}
+  </div>
+
+  {% if readonly %}
+    <div class="small">
+      <strong>Nivel:</strong>
+      {% if resp and resp.get_nivel_display %}
+        {{ resp.get_nivel_display }}
+      {% else %}
+        <em>Sin seleccionar</em>
+      {% endif %}
+      {% if resp %}
+        {% if resp.marcado %} · <strong>Marcado:</strong> ✓{% endif %}
+        {% if resp.observaciones %}<br><strong>Obs.:</strong> {{ resp.observaciones }}{% endif %}
+      {% endif %}
+    </div>
+    {% if resp %}
+      <div class="evidencias-bloque">
+        <h4 class="evid-title">Evidencias</h4>
+        <div id="evid-{{ d.id }}">
+          {% if resp.evidencias.exists %}
+            <ul class="evid-list">
+              {% for e in resp.evidencias.all %}
+                <li class="evid-item">
+                  <a href="{{ e.archivo.url }}" target="_blank" rel="noopener">{{ e.archivo.name }}</a>
+                  {% if e.nota %}<span class="evid-nota"> — {{ e.nota }}</span>{% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="small muted">Sin evidencias aún.</p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  {% else %}
+    <form
+      hx-post="{% url 'evaluaciones:respuesta_guardar' ev.pk d.id %}"
+      hx-target="#desc-{{ d.id }}"
+      hx-swap="outerHTML"
+    >
+      {% csrf_token %}
+      <div class="nivel-group">
+        {% for val,label in NIVELES %}
+          <label>
+            <input type="radio" name="nivel" value="{{ val }}" {% if resp and resp.nivel == val %}checked{% endif %} hx-trigger="change">
+            {{ label }}
+          </label>
+        {% endfor %}
+        <label>
+          <input type="radio" name="nivel" value="-" {% if resp and not resp.nivel %}checked{% endif %} hx-trigger="change">
+          Ninguno
+        </label>
+        <label>
+          <input type="checkbox" name="marcado" {% if resp and resp.marcado %}checked{% endif %} hx-trigger="change">
+          ✓/☐
+        </label>
+      </div>
+      <div>
+        <textarea name="observaciones" rows="2" placeholder="Observaciones..." hx-trigger="change">{% if resp %}{{ resp.observaciones }}{% endif %}</textarea>
+      </div>
+      <button type="submit">Guardar</button>
+    </form>
+    {% if resp %}
+    <div class="evidencias-bloque">
+      <h4 class="evid-title">Evidencias</h4>
+
+      <div id="evid-{{ d.id }}">
+        {% if resp.evidencias.exists %}
+          <ul class="evid-list">
+            {% for e in resp.evidencias.all %}
+              <li class="evid-item">
+                <a href="{{ e.archivo.url }}" target="_blank" rel="noopener">{{ e.archivo.name }}</a>
+                {% if e.nota %}<span class="evid-nota"> — {{ e.nota }}</span>{% endif %}
+                <form hx-post="{% url 'evaluaciones:evidencia_borrar' e.id %}"
+                      hx-target="#desc-{{ d.id }}"
+                      hx-swap="outerHTML"
+                      method="post"
+                      style="display:inline">
+                  {% csrf_token %}
+                  <button type="submit" class="link-danger">Borrar</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="small muted">Sin evidencias aún.</p>
+        {% endif %}
+      </div>
+
+      <form
+        hx-post="{% url 'evaluaciones:evidencia_subir' ev.pk resp.id %}"
+        hx-target="#desc-{{ d.id }}"
+        hx-swap="outerHTML"
+        enctype="multipart/form-data"
+        class="evid-form"
+        method="post"
+        style="margin-top:.5rem"
+      >
+        {% csrf_token %}
+        <input type="file" name="archivo" required>
+        <input type="text" name="nota" placeholder="Nota (opcional)" class="evid-nota-input">
+        <button type="submit">Subir evidencia</button>
+      </form>
+    </div>
+    {% endif %}
+  {% endif %}
+</div>

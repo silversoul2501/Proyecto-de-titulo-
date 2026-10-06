@@ -1,0 +1,10 @@
+/* pdf.css: estilos simples para impresión */
+* { box-sizing: border-box; }
+body { font-family: Arial, sans-serif; font-size: 12px; color: #111; }
+h1, h2 { color: #003366; margin: 0 0 .4cm; }
+.header { text-align: center; margin-bottom: .8cm; font-size: 10pt; }
+
+table { width: 100%; border-collapse: collapse; margin-bottom: .8cm; }
+th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+th { background: #eaf1fa; font-weight: 600; }
+tfoot td { background: #f6f8fc; font-weight: 700; }

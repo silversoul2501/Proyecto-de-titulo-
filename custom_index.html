@@ -1,0 +1,35 @@
+{% extends "admin/index.html" %}
+{% load static %}
+
+{% block content %}
+  {{ block.super }}
+
+  <div style="margin-top: 20px; text-align: center;">
+    <a href="{% url 'evaluaciones:lista' %}" target="_blank"
+       style="display: inline-block;
+              padding: 10px 18px;
+              background-color: #2e7d32;
+              color: white;
+              font-weight: 600;
+              text-decoration: none;
+              border-radius: 6px;
+              transition: background-color 0.2s ease;">
+      → Ir al Sistema de Evaluaciones
+    </a>
+  </div>
+{% endblock %}
+{% block extrahead %}
+  {{ block.super }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        var link = document.querySelector('#user-tools a[href="/evaluaciones/"]');
+        if (link) {
+          link.setAttribute('target', '_blank');
+        }
+      } catch (e) {
+        console.warn('No se pudo ajustar "Ver el sitio":', e);
+      }
+    });
+  </script>
+{% endblock %}

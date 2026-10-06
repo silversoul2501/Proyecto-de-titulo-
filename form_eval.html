@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/evaluaciones.css' %}">
+  <title>Evaluación {{ ev.id }} · {{ ev.evaluado }}</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="msg msg-{{ message.tags|default:'info' }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <header class="site-header">
+    <img src="{% static 'img/insigniaEncabezado16.png' %}" alt="Logo institucional" class="logo">
+    <div class="site-title">
+      <h1>Evaluación {{ ev.id }} — {{ ev.evaluado }}</h1>
+    </div>
+  </header>
+  {% if readonly %}
+    <div class="alert-locked">🔒 Esta evaluación está cerrada (solo lectura).</div>
+  {% endif %}
+  <div class="meta">
+    <div class="meta-row">
+      <form method="post" action="{% url 'evaluaciones:actualizar_meta' ev.pk %}" class="meta-form" {% if readonly %}style="display:none"{% endif %}>
+        {% csrf_token %}
+        <label>Docente
+          <select id="docente_select">
+            <option value="" disabled {% if not ev.evaluado %}selected{% endif %}>Selecciona un docente…</option>
+            {% for nombre in docentes %}
+              <option value="{{ nombre }}" {% if ev.evaluado == nombre %}selected{% endif %}>{{ nombre }}</option>
+            {% endfor %}
+            <option value="__REEMPLAZO__" {% if ev.evaluado and ev.evaluado not in docentes %}selected{% endif %}>Profesor de reemplazo…</option>
+          </select>
+
+          <!-- Campo real que se envía al backend manteniendo compatibilidad -->
+          <input type="hidden" name="evaluado" id="evaluado" value="{{ ev.evaluado|default_if_none:'' }}">
+
+          <!-- Campo visible solo si se elige "Profesor de reemplazo" -->
+          <input type="text"
+                 id="evaluado_reemplazo"
+                 placeholder="Ingrese nombre del profesor de reemplazo…"
+                 value="{% if ev.evaluado and ev.evaluado not in docentes %}{{ ev.evaluado }}{% endif %}"
+                 style="{% if ev.evaluado and ev.evaluado not in docentes %}display:inline-block;{% else %}display:none;{% endif %}">
+        </label>
+        <label>Curso
+          <input type="text" name="contexto" value="{{ ev.contexto|default_if_none:'' }}" placeholder="Curso/sección">
+        </label>
+        <button type="submit">Guardar</button>
+      </form>
+
+
+      <script>
+        (function() {
+          var sel = document.getElementById("docente_select");
+          var hidden = document.getElementById("evaluado");
+          var rep = document.getElementById("evaluado_reemplazo");
+
+          function sync() {
+            if (!sel || !hidden || !rep) return;
+            if (sel.value === "__REEMPLAZO__") {
+              rep.style.display = "inline-block";
+              hidden.value = (rep.value || "").trim();
+            } else {
+              rep.style.display = "none";
+              hidden.value = sel.value || "";
+            }
+          }
+
+          if (sel) {
+            sel.addEventListener("change", sync);
+          }
+          if (rep) {
+            rep.addEventListener("input", sync);
+          }
+          // Sincronizar estado inicial al cargar
+          document.addEventListener("DOMContentLoaded", sync);
+        })();
+      </script>
+
+      {% if readonly %}
+        <div class="meta-readonly">
+          <strong>Docente:</strong> {{ ev.evaluado }} —
+          <strong>Curso:</strong> {{ ev.contexto|default:"—" }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="meta-row small">
+      Checklist: {{ ev.checklist }} — Estado: {{ ev.estado }} —
+      Fecha: {% if ev.updated_at %}{{ ev.updated_at|date:"Y-m-d H:i" }}{% else %}{{ ev.fecha }}{% endif %}
+    </div>
+
+    <div class="meta-actions">
+      <a href="{% url 'evaluaciones:lista' %}" class="btn-ghost">⬅ Volver al listado</a>
+
+      {% if ev.estado == "Borrador" %}
+        <form method="post" action="{% url 'evaluaciones:finalizar' ev.pk %}" style="display:inline" onsubmit="return confirm('¿Finalizar esta evaluación? No podrás editar hasta reabrir.');">
+          {% csrf_token %}
+          <button type="submit">Finalizar evaluación</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'evaluaciones:reabrir' ev.pk %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit">Reabrir</button>
+        </form>
+      {% endif %}
+
+      <a href="{% url 'evaluaciones:nueva' %}" class="btn-ghost">Nueva evaluación</a>
+      <a class="btn-resumen" href="{% url 'evaluaciones:resumen' ev.pk %}">Ver resumen</a>
+      <a class="btn-resumen" href="{% url 'evaluaciones:pdf' ev.pk %}">Descargar PDF</a>
+    </div>
+  </div>
+
+  {% include "evaluaciones/_progress.html" with progress_percent=progress_percent progress_completed=progress_completed progress_total=progress_total %}
+
+  {# Agrupar por Dominio/Estandar/Foco dentro del template #}
+  {% regroup descriptores by foco.estandar.dominio as g_dom %}
+  {% for dom in g_dom %}
+    <details open>
+      <summary>{{ dom.grouper.nombre }}</summary>
+
+      {% regroup dom.list by foco.estandar as g_est %}
+      {% for est in g_est %}
+        <details>
+          <summary>{{ est.grouper.nombre }}</summary>
+
+          {% regroup est.list by foco as g_foc %}
+          {% for foc in g_foc %}
+            <details>
+              <summary>{{ foc.grouper.nombre }}</summary>
+
+              <div>
+                {% for d in foc.list %}
+                  {% include "evaluaciones/_fila_descriptor.html" with d=d resp=d.resp ev=ev readonly=readonly %}
+                {% endfor %}
+              </div>
+            </details>
+          {% endfor %}
+        </details>
+      {% endfor %}
+    </details>
+  {% endfor %}
+</body>
+</html>
